@@ -1,0 +1,12 @@
+{
+    "faq": [
+        {
+            "question": "What is Composer?",
+            "answer": "Composer is a tool for dependency management in PHP. It allows you to declare the libraries your project depends on and it will manage (install/update) them for you. You can learn more at <a href=\"https://getcomposer.org\" target=\"_blank\">https://getcomposer.org</a>."
+        },
+        {
+            "question": "What is Composer for DirectAdmin?",
+            "answer": "Your service provider may not grant SSH access for you because of security reasons. You cannot install Composer by yourself or even running shell command. With Composer for DirectAdmin, you can use Composer in an easy and safe way without CLI."
+        }
+    ]
+}

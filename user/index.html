@@ -1,0 +1,115 @@
+#!/usr/local/bin/php -n
+<?php
+require_once dirname(__DIR__).'/includes/helper.php';
+require_once dirname(__DIR__).'/includes/composer.php';
+
+$_GET = Helper::parseGET();
+$_POST = Helper::parsePOST();
+$username = getenv('USERNAME');
+
+// Handle actions
+if (!empty($_POST)) {
+    if (!Helper::isTargetPathExist($username, $_POST['path'])) {
+        echo Helper::jsRedirect('?result=notexist');
+        exit;
+    }
+    chdir(Helper::getTargetPath($username, $_POST['path']));
+    if (Composer::exec('install', $_POST['option'])) {
+        echo Helper::jsRedirect('?result=success');
+        exit;
+    } else {
+        echo Helper::jsRedirect('?result=error');
+        exit;
+    }
+}
+
+include dirname(__DIR__).'/includes/header.php';
+?>
+
+<div class="composerMargin" style="width: 800px;">
+
+    <p class="text-center">
+        <img src="./images/logo-composer.png" alt="" style="margin: 0 auto;" />
+    </p>
+
+<?php if (!Composer::isInstalled()) { ?>
+
+    <p class="lead text-center">Composer not found. Please contact administration for assistance.</p>
+
+<?php } else { ?>
+
+    <ul class="nav nav-tabs" role="tablist">
+        <li role="presentation" class="active"><a href="#install" aria-controls="install" role="tab" data-toggle="tab">Install</a></li>
+        <li role="presentation"><a href="#faq" aria-controls="faq" role="tab" data-toggle="tab">FAQ</a></li>
+    </ul>
+
+    <div class="tab-content">
+
+        <div role="tabpanel" class="tab-pane fade in active composerMargin" id="install">
+            <?php
+            switch ($_GET['result']) {
+                case 'notexist':
+                    echo Helper::getAlertsHtml('Target path not exist / Cannot find composer.json in target path', 'warning');
+                    break;
+                case 'error':
+                    echo Helper::getAlertsHtml('Install fail. Please check your composer.json', 'danger');
+                    break;
+                case 'success':
+                    echo Helper::getAlertsHtml('Install success', 'success');
+                    break;
+            }
+            ?>
+
+            <form action="" method="post">
+                <div class="form-group">
+                    <label for="targetpath">Target path:</label>
+                    /domains/<input type="text" id="targetpath" name="path" placeholder="getcomposer.org/public_html/myComposerProject/" style="width: 80%;" required />
+                    <p class="help-block">Please ensure composer.json exists under target path</p>
+                </div>
+                <p><b>Install option:</b> <a href="https://getcomposer.org/doc/03-cli.md#install" target="_blank">(?)</a></p>
+                <div class="checkbox">
+                    <label id="option_no-dev">
+                        <input type="checkbox" id="option_no-dev" name="option[]" value="no-dev"> --no-dev
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label id="option_optimize-autoloader">
+                        <input type="checkbox" id="option_optimize-autoloader" name="option[]" value="optimize-autoloader"> --optimize-autoloader
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-default" data-loading-text="Loading...">composer install</button>
+            </form>
+
+            <script type="text/javascript">
+            $(document).ready(function() {
+                $('button.btn[type=submit]').on('click', function() {
+                    if ($(this).parents('form')[0].checkValidity()) {
+                        $(this).button('loading');
+                    }
+                });
+            });
+            </script>
+        </div>
+
+        <div role="tabpanel" class="tab-pane fade composerMargin" id="faq">
+            <?php $faq = json_decode(file_get_contents(__DIR__.'/faq.json'), true); ?>
+            <?php foreach ($faq['faq'] as $value) { ?>
+            <div class="panel panel-default">
+                <div class="panel-heading"><?php echo $value['question']; ?></div>
+                <div class="panel-body"><?php echo $value['answer']; ?></div>
+            </div>
+            <?php } ?>
+        </div>
+
+    </div>
+
+<?php } ?>
+
+</div>
+
+<hr />
+
+<div class="composerMargin">
+    <p>Made with <span class="glyphicon glyphicon-heart" aria-hidden="true"></span> by <a href="https://github.com/Marco129/DirectAdmin-Composer" target="_blank">Marco129</a></p>
+    <p><?php $version = Composer::getVersion(); echo !is_null($version) ? $version : ''; ?></p>
+</div>
